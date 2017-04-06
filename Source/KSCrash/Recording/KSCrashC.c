@@ -63,6 +63,7 @@ static bool g_shouldPrintPreviousLog = false;
 char g_consoleLogPath[KSFU_MAX_PATH_LENGTH];
 static KSCrashMonitorType g_monitoring = KSCrashMonitorTypeProductionSafeMinimal;
 static char g_lastCrashReportFilePath[KSFU_MAX_PATH_LENGTH];
+static KSReportWrittenCallback g_reportWrittenCallback;
 
 
 // ============================================================================
@@ -108,6 +109,11 @@ static void onCrash(struct KSCrash_MonitorContext* monitorContext)
         kscrs_getNextCrashReportPath(crashReportFilePath);
         strncpy(g_lastCrashReportFilePath, crashReportFilePath, sizeof(g_lastCrashReportFilePath));
         kscrashreport_writeStandardReport(monitorContext, crashReportFilePath);
+    }
+
+    if(g_reportWrittenCallback)
+    {
+        g_reportWrittenCallback();
     }
 }
 
@@ -191,6 +197,11 @@ void kscrash_setDoNotIntrospectClasses(const char** doNotIntrospectClasses, int 
 void kscrash_setCrashNotifyCallback(const KSReportWriteCallback onCrashNotify)
 {
     kscrashreport_setUserSectionWriteCallback(onCrashNotify);
+}
+
+void kscrash_setReportWrittenCallback(const KSReportWrittenCallback onReportWrittenNotify)
+{
+    g_reportWrittenCallback = onReportWrittenNotify;
 }
 
 void kscrash_setAddConsoleLogToReport(bool shouldAddConsoleLogToReport)
